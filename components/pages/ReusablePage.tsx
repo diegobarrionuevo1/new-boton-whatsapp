@@ -10,6 +10,7 @@ interface ReusablePageProps {
     businessName: string; // Nombre a mostrar
     whatsappLink: string; // Enlace de WhatsApp
   rounded?: boolean;
+  width?: number;
 }
 
 export default function ReusablePage({
@@ -17,6 +18,7 @@ export default function ReusablePage({
   businessName,
   whatsappLink,
   rounded = true,
+  width = 222
 }: ReusablePageProps) {
     const handleClick = async () => {
         const userId = localStorage.getItem("userId") || crypto.randomUUID();
@@ -57,14 +59,15 @@ export default function ReusablePage({
                     height={222}
                     alt={`Logo de ${businessName}`}
                     className={rounded ? "rounded-full" : ""}
+                    width={width}
         />
       </div>
             <div className="inline-block max-w-lg text-center justify-center pb-5">
-                <h1 >Bienvenido a&nbsp;</h1>
-                <AuroraText>{businessName}&nbsp;</AuroraText>
+                <h1 className='text-4xl font-bold tracking-tighter md:text-5xl lg:text-7xl' >Bienvenido a&nbsp;</h1>
+                <AuroraText className='text-4xl font-bold tracking-tighter md:text-5xl lg:text-7xl'>{businessName}&nbsp;</AuroraText>
                 <br />
-                <h1 >¡Que te diviertas!</h1>
-                <h2>
+                <h1 className='text-4xl font-bold tracking-tighter md:text-5xl lg:text-7xl' ></h1>
+                <h2 className='text-xl font-bold tracking-tighter' >
                     Jugá tranquilo, nosotros te representamos.
                 </h2>
             </div>

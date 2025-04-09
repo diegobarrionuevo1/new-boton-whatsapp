@@ -1,29 +1,72 @@
-"use client";
+'use client';
 
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-
+import { useTheme } from "next-themes";
+import ReusablePage from "@/components/pages/ReusablePage";
 import { Particles } from "@/components/magicui/particles";
-import { AuroraText } from "@/components/magicui/aurora-text";
-import { RainbowButton } from "@/components/magicui/rainbow-button";
+import logoGolden from '@/public/logoGolden.png';
 
-export default function Home() {
+export default function GoldenBot() {
   const { resolvedTheme } = useTheme();
   const [color, setColor] = useState("#ffffff");
+  const [currentNumber, setCurrentNumber] = useState<string | null>(null);
 
   useEffect(() => {
     setColor(resolvedTheme === "dark" ? "#ffffff" : "#000000");
   }, [resolvedTheme]);
 
+  // Fetch inicial del número actual desde el backend
+  useEffect(() => {
+    const fetchCurrentNumber = async () => {
+      try {
+        const response = await fetch("/api/clicks?business=GoldenBot", {
+          method: "GET",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentNumber(data.currentNumber);
+        } else {
+          console.error("Error en la respuesta del servidor");
+        }
+      } catch (error) {
+        console.error("Error al obtener el número actual:", error);
+      }
+    };
+
+    fetchCurrentNumber();
+  }, []);
+
+  // Evitar renderizar algo distinto en SSR y CSR
+  if (currentNumber === null) {
+    return (
+      <div className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background">
+        <span className="pointer-events-none z-10 whitespace-pre-wrap text-center text-2xl font-semibold leading-none">
+          Cargando...
+        </span>
+        <Particles
+          className="absolute inset-0 z-0"
+          quantity={100}
+          ease={80}
+          color={color}
+          staticity={30}
+          size={2}
+          refresh
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background">
-      <span className="pointer-events-none z-10 whitespace-pre-wrap text-center text-8xl font-semibold leading-none">
-        Particles
-      </span>
-      <h1 className="text-4xl font-bold tracking-tighter md:text-5xl lg:text-7xl">
-      Ship <AuroraText>beautiful</AuroraText>
-    </h1>
-    <RainbowButton className="mt-4">Get Unlimited Access</RainbowButton>
+      <div className="z-10">
+        <ReusablePage
+          logoSrc={logoGolden}
+          businessName="GoldenBot"
+          whatsappLink={currentNumber}
+          rounded={false}
+        />
+      </div>
       <Particles
         className="absolute inset-0 z-0"
         quantity={150}

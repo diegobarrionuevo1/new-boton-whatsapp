@@ -65,6 +65,7 @@ export default function Hero() {
           businessName="Hero"
           whatsappLink={currentNumber}
           rounded={false}
+          width={262}
         />
       </div>
       <Particles
