@@ -35,10 +35,52 @@ export default function ReusablePageWithLinks({
     const { resolvedTheme } = useTheme();
     const [color, setColor] = useState("#ffffff");
     const [isThemeResolved, setIsThemeResolved] = useState(false);
+    
     useEffect(() => {
         setColor(resolvedTheme === "dark" ? "#ffffff" : "#000000");
         setIsThemeResolved(true); // Ensure this runs after theme is resolved
     }, [resolvedTheme]); // Depend on resolvedTheme
+    
+    const handleClick = async (url: string) => {
+        // Asegurar que siempre tengamos un userId
+        let userId = localStorage.getItem("userId");
+        if (!userId) {
+            userId = crypto.randomUUID();
+            localStorage.setItem("userId", userId);
+        }
+
+        const body = JSON.stringify({
+            userId: userId,
+            business: "Hero", // Asumimos que este componente se usa para Hero
+        });
+
+        console.log("Body enviado:", body);
+
+        try {
+            const response = await fetch("/api/clicks", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: body,
+            });
+      
+            if (!response.ok) {
+                throw new Error("Error en la solicitud al backend");
+            }
+
+            const data = await response.json();
+            console.log("Estadísticas actualizadas:", data);
+            
+            // Usar el enlace tal como está, sin formatear
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error("Error al enviar clic:", error);
+            // Si hay un error, aún así redirigimos al usuario
+            window.open(url, '_blank');
+        }
+    };
+    
     return (
         <section className="relative flex flex-col items-center justify-center h-screen">
             <div className='z-10 flex flex-col items-center justify-center h-screen'>
@@ -64,16 +106,14 @@ export default function ReusablePageWithLinks({
                     <RainbowButton
                         key={index}
                         className={`${index > 0 ? "mt-5 " : " "} ${resolvedTheme === 'dark' ? 'bg-black' : ''}`}
-
+                        onClick={() => handleClick(link.href)}
                     >
-                        <a href={link.href} target="_blank" rel="noopener noreferrer">
-                            <Image
-                                src={link.logoSrc}
-                                height={58}
-                                alt={link.logoAlt}
-                                className="m-2 "
-                            />
-                        </a>
+                        <Image
+                            src={link.logoSrc}
+                            height={58}
+                            alt={link.logoAlt}
+                            className="m-2 "
+                        />
                     </RainbowButton>
                 ))}
                 

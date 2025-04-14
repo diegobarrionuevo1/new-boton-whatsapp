@@ -21,12 +21,12 @@ export default function ReusablePage({
   width = 222
 }: ReusablePageProps) {
     const handleClick = async () => {
-        const userId = localStorage.getItem("userId") || crypto.randomUUID();
+        // Asegurar que siempre tengamos un userId
+        let userId = localStorage.getItem("userId");
         if (!userId) {
-            console.error("UserId not available");
-            return;
+            userId = crypto.randomUUID();
+            localStorage.setItem("userId", userId);
         }
-        localStorage.setItem("userId", userId);
 
         const body = JSON.stringify({
             userId: userId,
@@ -42,7 +42,7 @@ export default function ReusablePage({
                     "Content-Type": "application/json",
                 },
                 body: body,
-      });
+            });
       
             if (!response.ok) {
                 throw new Error("Error en la solicitud al backend");
@@ -50,10 +50,15 @@ export default function ReusablePage({
 
             const data = await response.json();
             console.log("Estadísticas actualizadas:", data);
+            
+            // Redirigir al enlace de WhatsApp tal como está, sin formatear
+            window.open(whatsappLink, '_blank');
         } catch (error) {
             console.error("Error al enviar clic:", error);
-    }
-  };
+            // Si hay un error, aún así redirigimos al usuario
+            window.open(whatsappLink, '_blank');
+        }
+    };
 
   return (
         <section className="flex flex-col items-center justify-center h-screen">
@@ -77,7 +82,7 @@ export default function ReusablePage({
             </div>
             <RainbowButton color="primary" onClick={handleClick}>
                 <IconWhatsapp />
-                <a href={whatsappLink}>Hablar por WhatsApp</a>
+                <span>Hablar por WhatsApp</span>
             </RainbowButton>
         </section>
   );

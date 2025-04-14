@@ -53,12 +53,20 @@ export async function GET(request: NextRequest) {
 
     const businessKey = business as BusinessType;
     const businessData = data[businessKey] || { clickCount: 0, uniqueUsers: [] };
-    const currentNumber =
-        numbers[businessKey][Math.floor(businessData.clickCount / 10) % numbers[businessKey].length];
+    
+    // Asegurarse de que el índice no exceda el número de elementos en el array
+    const numberIndex = numbers[businessKey].length > 0 
+        ? Math.floor(businessData.clickCount / 10) % numbers[businessKey].length 
+        : 0;
+    
+    // Usar el enlace tal como está, sin formatear
+    const currentNumber = numbers[businessKey].length > 0 
+        ? numbers[businessKey][numberIndex]
+        : "";
 
     return NextResponse.json({
         clickCount: businessData.clickCount,
-        uniqueUsers: businessData.uniqueUsers.length,
+        uniqueUsers: businessData.uniqueUsers?.length || 0,
         currentNumber,
     });
 }
@@ -67,45 +75,62 @@ export async function POST(request: NextRequest) {
     // Leer datos persistentes
     const data = readData();
     
-    // Obtener los datos del cuerpo de la solicitud
-    const body = await request.json();
-    const { userId, business } = body;
+    try {
+        // Obtener los datos del cuerpo de la solicitud
+        const body = await request.json();
+        const { userId, business } = body;
 
-    // Validación de entrada
-    if (
-        !userId ||
-        !business ||
-        typeof userId !== "string" ||
-        typeof business !== "string" ||
-        !(business in numbers)
-    ) {
-        return NextResponse.json({ error: "Datos inválidos o negocio no válido" }, { status: 400 });
+        // Validación de entrada
+        if (
+            !userId ||
+            !business ||
+            typeof userId !== "string" ||
+            typeof business !== "string" ||
+            !(business in numbers)
+        ) {
+            return NextResponse.json({ error: "Datos inválidos o negocio no válido" }, { status: 400 });
+        }
+
+        const businessKey = business as BusinessType;
+
+        // Inicializar datos del negocio si no existen
+        if (!data[businessKey]) {
+            data[businessKey] = { clickCount: 0, uniqueUsers: [] };
+        }
+
+        // Obtener datos específicos del negocio
+        const businessData = data[businessKey];
+
+        // Verificar usuario único
+        if (!businessData.uniqueUsers.includes(userId)) {
+            businessData.uniqueUsers.push(userId);
+            businessData.clickCount++;
+        }
+
+        // Asegurarse de que el índice no exceda el número de elementos en el array
+        const numberIndex = numbers[businessKey].length > 0 
+            ? Math.floor(businessData.clickCount / 10) % numbers[businessKey].length 
+            : 0;
+        
+        // Usar el enlace tal como está, sin formatear
+        const currentNumber = numbers[businessKey].length > 0 
+            ? numbers[businessKey][numberIndex]
+            : "";
+            
+        businessData.currentNumber = currentNumber;
+
+        // Actualizar los datos globales
+        data[businessKey] = businessData;
+        writeData(data);
+
+        return NextResponse.json({
+            clickCount: businessData.clickCount,
+            uniqueUsers: businessData.uniqueUsers.length,
+            currentNumber: businessData.currentNumber,
+            message: "Número actualizado correctamente",
+        });
+    } catch (error) {
+        console.error("Error en el procesamiento de la solicitud:", error);
+        return NextResponse.json({ error: "Error en el procesamiento de la solicitud" }, { status: 500 });
     }
-
-    const businessKey = business as BusinessType;
-
-    // Obtener datos específicos del negocio
-    const businessData = data[businessKey] || { clickCount: 0, uniqueUsers: [] };
-
-    // Verificar usuario único
-    if (!businessData.uniqueUsers.includes(userId)) {
-        businessData.uniqueUsers.push(userId);
-        businessData.clickCount++;
-    }
-
-    // Calcular el número actual
-    const currentNumber =
-        numbers[businessKey][Math.floor(businessData.clickCount / 10) % numbers[businessKey].length];
-    businessData.currentNumber = currentNumber;
-
-    // Actualizar los datos globales
-    data[businessKey] = businessData;
-    writeData(data);
-
-    return NextResponse.json({
-        clickCount: businessData.clickCount,
-        uniqueUsers: businessData.uniqueUsers.length,
-        currentNumber: businessData.currentNumber,
-        message: "Número actualizado correctamente",
-    });
 }
