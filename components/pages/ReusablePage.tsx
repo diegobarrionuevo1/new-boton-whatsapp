@@ -22,6 +22,10 @@ export default function ReusablePage({
 }: ReusablePageProps) {
     const handleClick = async () => {
         const userId = localStorage.getItem("userId") || crypto.randomUUID();
+        if (!userId) {
+            console.error("UserId not available");
+            return;
+        }
         localStorage.setItem("userId", userId);
 
         const body = JSON.stringify({
@@ -46,7 +50,7 @@ export default function ReusablePage({
 
             const data = await response.json();
             console.log("Estadísticas actualizadas:", data);
-    } catch (error) {
+        } catch (error) {
             console.error("Error al enviar clic:", error);
     }
   };
@@ -71,13 +75,10 @@ export default function ReusablePage({
                     Jugá tranquilo, nosotros te representamos.
                 </h2>
             </div>
-      <RainbowButton 
-                color="primary"
-                onClick={handleClick}
-      >
+            <RainbowButton color="primary" onClick={handleClick}>
                 <IconWhatsapp />
                 <a href={whatsappLink}>Hablar por WhatsApp</a>
-      </RainbowButton>
+            </RainbowButton>
         </section>
   );
 }
