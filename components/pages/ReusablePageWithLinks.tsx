@@ -34,18 +34,21 @@ export default function ReusablePageWithLinks({
 }: ReusablePageWithLinksProps) {
     const { resolvedTheme } = useTheme();
     const [color, setColor] = useState("#ffffff");
+    const [isThemeResolved, setIsThemeResolved] = useState(false);
     useEffect(() => {
         setColor(resolvedTheme === "dark" ? "#ffffff" : "#000000");
-    }, [resolvedTheme]);
+        setIsThemeResolved(true); // Ensure this runs after theme is resolved
+    }, [resolvedTheme]); // Depend on resolvedTheme
     return (
-        <section className="flex flex-col items-center justify-center h-screen">
+        <section className="relative flex flex-col items-center justify-center h-screen">
+            <div className='z-10 flex flex-col items-center justify-center h-screen'>
             {/* Logo principal */}
             <div className="mb-4">
                 <Image
                     src={businessLogo}
                     width={width}
                     alt={`Logo de ${logoAlt}`}
-                    className={rounded ? "rounded-full" : ""}
+                    className={rounded ? "rounded-full" : "" }
                 />
             </div>
 
@@ -57,22 +60,24 @@ export default function ReusablePageWithLinks({
             </div>
 
             {/* Botones con enlaces */}
-            {links.map((link, index) => (
-                <RainbowButton
-                    key={index}
-                    className={index > 0 ? "mt-5" : ""}
-                    color="primary"
-                >
-                    <a href={link.href} target="_blank" rel="noopener noreferrer"> 
-                        <Image
-                            src={link.logoSrc}
-                            height={58}
-                            alt={link.logoAlt}
-                            className="m-2"
-                    />
-                    </a>
-                </RainbowButton>
-            ))}
+            {isThemeResolved && links.map((link, index) => (
+                    <RainbowButton
+                        key={index}
+                        className={`${index > 0 ? "mt-5 " : " "} ${resolvedTheme === 'dark' ? 'bg-black' : ''}`}
+
+                    >
+                        <a href={link.href} target="_blank" rel="noopener noreferrer">
+                            <Image
+                                src={link.logoSrc}
+                                height={58}
+                                alt={link.logoAlt}
+                                className="m-2 "
+                            />
+                        </a>
+                    </RainbowButton>
+                ))}
+                
+            </div>
             <Particles
                 className="absolute inset-0 z-0"
                 quantity={150}
@@ -82,6 +87,8 @@ export default function ReusablePageWithLinks({
                 size={2}
                 refresh
             />
+            
         </section>
+
     );
 }

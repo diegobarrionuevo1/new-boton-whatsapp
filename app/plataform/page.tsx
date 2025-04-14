@@ -1,9 +1,9 @@
 import ReusablePageWithLinks from "@/components/pages/ReusablePageWithLinks";
 import { siteConfig } from "@/config/site";
-import logoGolden from '@/public/logoGolden.png';
+import logoGolden from "@/public/logoGolden.png"
 
 export default function Home() {
-  const links = siteConfig.platforms
+  const links = siteConfig.platforms;
 
   return (
     <ReusablePageWithLinks

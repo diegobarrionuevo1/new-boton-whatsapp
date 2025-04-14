@@ -17,7 +17,7 @@ export const RainbowButton = React.forwardRef<
         // dark mode colors
         "dark:bg-[linear-gradient(#fff,#fff),linear-gradient(#fff_50%,rgba(255,255,255,0.6)_80%,rgba(0,0,0,0)),linear-gradient(90deg,hsl(0_100%_63%),hsl(90_100%_63%),hsl(210_100%_63%),hsl(195_100%_63%),hsl(270_100%_63%))]",
         className,
-      )}
+        )}
       {...props}
     >
       {children}
