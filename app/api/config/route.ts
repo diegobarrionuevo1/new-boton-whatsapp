@@ -41,6 +41,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, message: 'Configuración actualizada correctamente' });
   } catch (error) {
     console.error('Error al actualizar la configuración:', error);
-    return NextResponse.json({ error: 'Error al actualizar la configuración' }, { status: 500 });
+    // LOG EXTRA: mostrar el error exacto que se enviará al frontend
+    if (error instanceof Error) {
+      console.error('Mensaje enviado al frontend:', error.message);
+    } else {
+      console.error('Mensaje enviado al frontend:', String(error));
+    }
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

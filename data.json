@@ -6,7 +6,10 @@
       "f38776ae-ff74-46b2-a447-6c27ac277e76",
       "84de981f-10e9-46d5-b097-39de30d4238f"
     ],
-    "currentNumber": "https://bit.ly/400OAQE"
+    "currentNumber": "https://bit.ly/400OAQE",
+    "dailyClicks": {
+      "2025-04-14": 0
+    }
   },
   "Hero": {
     "clickCount": 2,
