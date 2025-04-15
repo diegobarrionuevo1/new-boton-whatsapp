@@ -9,7 +9,14 @@ import { useTheme } from 'next-themes';
 
 export interface LinkData {
     href: string;
-    logoSrc: StaticImageData;
+    logoSrc: StaticImageData | string | {
+        src: string;
+        width: number;
+        height: number;
+        blurDataURL?: string;
+        blurWidth?: number;
+        blurHeight?: number;
+    };
     logoAlt: string;
 }
 
@@ -102,20 +109,33 @@ export default function ReusablePageWithLinks({
             </div>
 
             {/* Botones con enlaces */}
-            {isThemeResolved && links.map((link, index) => (
+            {isThemeResolved && links.map((link, index) => {
+                // Determinar la fuente de la imagen
+                let imageSrc;
+                if (typeof link.logoSrc === 'string') {
+                    imageSrc = link.logoSrc;
+                } else if ('src' in link.logoSrc) {
+                    imageSrc = link.logoSrc.src;
+                } else {
+                    imageSrc = link.logoSrc;
+                }
+                
+                return (
                     <RainbowButton
                         key={index}
-                        className={`${index > 0 ? "mt-5 " : " "} ${resolvedTheme === 'dark' ? 'bg-black' : ''}`}
+                        className={`${index > 0 ? "mt-5 " : " "} p-7 ${resolvedTheme === 'dark' ? 'bg-black' : ''}`}
                         onClick={() => handleClick(link.href)}
                     >
                         <Image
-                            src={link.logoSrc}
+                            src={imageSrc}
                             height={58}
+                            width={200}
                             alt={link.logoAlt}
-                            className="m-2 "
+                            className="m-0"
                         />
                     </RainbowButton>
-                ))}
+                );
+            })}
                 
             </div>
             <Particles
