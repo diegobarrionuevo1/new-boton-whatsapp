@@ -8,33 +8,70 @@ const filePath = path.resolve("./data.json");
 
 // Función para leer datos del archivo JSON
 const readData = () => {
-    // Verificar si el archivo existe, si no, crearlo con un objeto vacío
-    if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, JSON.stringify({}, null, 2), "utf-8");
+    try {
+        // Verificar si el archivo existe, si no, crearlo con un objeto vacío
+        if (!fs.existsSync(filePath)) {
+            fs.writeFileSync(filePath, JSON.stringify({}, null, 2), "utf-8");
+        }
+        const jsonData = fs.readFileSync(filePath, "utf-8");
+        return JSON.parse(jsonData);
+    } catch (error) {
+        console.error("Error al leer datos:", error);
+        return {};
     }
-    const jsonData = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(jsonData);
 };
 
 // Función para escribir datos en el archivo JSON
 const writeData = (data: object) => {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    } catch (error) {
+        console.error("Error al escribir datos:", error);
+    }
 };
 
 // Tipos permitidos para las claves de numbers
 type BusinessType = "Hero" | "GoldenBot";
 
 // Números de WhatsApp para cada negocio
-const numbers: Record<BusinessType, string[]> = {
-    Hero: [
-        siteConfig.whatsappNumbers.descartableHero.numero1,
-        siteConfig.whatsappNumbers.descartableHero.numero2,
-    ],
-    GoldenBot: [
-        siteConfig.whatsappNumbers.principalGolden.numero1,
-        siteConfig.whatsappNumbers.principalGolden.numero2
-    ],
+const getNumbers = (): Record<BusinessType, string[]> => {
+    try {
+        // Leer la configuración actual del archivo data.json
+        const data = readData();
+        const config = data.config || {};
+        
+        // Si hay configuración en data.json, usarla
+        if (config.whatsappNumbers) {
+            return {
+                Hero: [
+                    config.whatsappNumbers.descartableHero?.numero1 || siteConfig.whatsappNumbers.descartableHero.numero1,
+                    config.whatsappNumbers.descartableHero?.numero2 || siteConfig.whatsappNumbers.descartableHero.numero2,
+                ],
+                GoldenBot: [
+                    config.whatsappNumbers.principalGolden?.numero1 || siteConfig.whatsappNumbers.principalGolden.numero1,
+                    config.whatsappNumbers.principalGolden?.numero2 || siteConfig.whatsappNumbers.principalGolden.numero2,
+                ],
+            };
+        }
+    } catch (error) {
+        console.error("Error al obtener números de WhatsApp:", error);
+    }
+    
+    // Usar la configuración por defecto si no hay datos en data.json
+    return {
+        Hero: [
+            siteConfig.whatsappNumbers.descartableHero.numero1,
+            siteConfig.whatsappNumbers.descartableHero.numero2,
+        ],
+        GoldenBot: [
+            siteConfig.whatsappNumbers.principalGolden.numero1,
+            siteConfig.whatsappNumbers.principalGolden.numero2
+        ],
+    };
 };
+
+// Obtener los números actuales
+const numbers = getNumbers();
 
 export async function GET(request: NextRequest) {
     // Leer datos persistentes
@@ -134,13 +171,16 @@ export async function POST(request: NextRequest) {
             businessData.dailyClicks[today] = 0;
         }
 
-        // Verificar usuario único
-        if (!businessData.uniqueUsers.includes(userId)) {
-            businessData.uniqueUsers.push(userId);
-            businessData.clickCount++;
-            
-            // Incrementar el contador de clicks del día
-            businessData.dailyClicks[today]++;
+        // Incrementar siempre el contador de clicks
+        businessData.clickCount++;
+        
+        // Incrementar el contador de clicks del día
+        businessData.dailyClicks[today]++;
+        
+        // Verificar usuario único (opcional, para estadísticas)
+        const baseUserId = userId.split('_')[0]; // Extraer el ID base sin el timestamp
+        if (!businessData.uniqueUsers.includes(baseUserId)) {
+            businessData.uniqueUsers.push(baseUserId);
         }
 
         // Asegurarse de que el índice no exceda el número de elementos en el array

@@ -28,9 +28,14 @@ export default function ReusablePage({
             localStorage.setItem("userId", userId);
         }
 
+        // Agregar timestamp para evitar duplicados incluso con el mismo userId
+        const timestamp = new Date().getTime();
+        const uniqueId = `${userId}_${timestamp}`;
+
         const body = JSON.stringify({
-            userId: userId,
+            userId: uniqueId,
             business: businessName,
+            timestamp: timestamp
         });
 
         console.log("Body enviado:", body);
