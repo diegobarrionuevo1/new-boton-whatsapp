@@ -174,7 +174,7 @@ export default function StatsPage() {
   const verifyPasswordAndSave = async (password: string) => {
     try {
       // Leer la contraseña desde la variable de entorno
-      const correctPassword = process.env.contraseña;
+      const correctPassword = process.env.contrasena;
       
       if (password !== correctPassword) {
         setPasswordError("Contraseña incorrecta");
