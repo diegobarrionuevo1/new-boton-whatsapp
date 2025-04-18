@@ -9,12 +9,12 @@ export const siteConfig = {
   descriptionPlataform: 'Jugá tranquilo, nosotros te representamos.',
   whatsappNumbers: {
     principalGolden: {
-      numero1: 'https://bit.ly/400OAQE',
-      numero2: 'https://bit.ly/Goldenbot2'
+      numero1: 'https://api.whatsapp.com/send/?phone=5493517871678&text=Hola!+Quiero+un+usuario+porfavor!',
+      numero2: 'https://api.whatsapp.com/send/?phone=5491173651087&text=Hola!+Quiero+un+usuario+porfavor!'
     },
     descartableHero: {
-      numero1: 'https://shorkit.com/3512926515',
-      numero2: 'https://shorkit.com/3516300985'
+      numero1: 'https://api.whatsapp.com/send/?phone=5493512926515&text=Hola%21+Quiero+un+usuario+porfavor%21+&type=phone_number&app_absent=0',
+      numero2: 'https://api.whatsapp.com/send/?phone=5493516300985&text=Hola%21+Quiero+un+usuario+porfavor%21+&type=phone_number&app_absent=0'
     }
   },
   platforms: [
