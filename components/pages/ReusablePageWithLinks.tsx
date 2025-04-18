@@ -56,15 +56,20 @@ export default function ReusablePageWithLinks({
             localStorage.setItem("userId", userId);
         }
 
+        // Agregar timestamp para evitar duplicados incluso con el mismo userId
+        const timestamp = new Date().getTime();
+        const uniqueId = `${userId}_${timestamp}`;
+
         const body = JSON.stringify({
-            userId: userId,
+            userId: uniqueId,
             business: "Hero", // Asumimos que este componente se usa para Hero
+            timestamp: timestamp
         });
 
         console.log("Body enviado:", body);
 
         try {
-            const response = await fetch("/api/clicks", {
+            const response = await fetch("/api/clicks-redis", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -41,7 +41,7 @@ export default function ReusablePage({
         console.log("Body enviado:", body);
 
         try {
-            const response = await fetch("/api/clicks", {
+            const response = await fetch("/api/clicks-redis", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

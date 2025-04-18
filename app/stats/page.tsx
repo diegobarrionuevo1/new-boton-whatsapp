@@ -52,10 +52,10 @@ export default function StatsPage() {
     const fetchStats = async () => {
       try {
         // Fetch de Hero
-        const heroResponse = await fetch("/api/clicks?business=Hero", {
+        const heroResponse = await fetch("/api/clicks-redis?business=Hero", {
           method: "GET",
         });
-        const goldenBotResponse = await fetch("/api/clicks?business=GoldenBot", {
+        const goldenBotResponse = await fetch("/api/clicks-redis?business=GoldenBot", {
           method: "GET",
         });
 
@@ -111,7 +111,7 @@ export default function StatsPage() {
     const fetchConfig = async () => {
       try {
         setConfigLoading(true);
-        const response = await fetch("/api/config", {
+        const response = await fetch("/api/config-redis", {
           method: "GET",
         });
 
@@ -173,11 +173,19 @@ export default function StatsPage() {
   // Función para verificar la contraseña y guardar la configuración
   const verifyPasswordAndSave = async (password: string) => {
     try {
-      // Leer la contraseña desde la variable de entorno
-      const correctPassword = process.env.contrasena;
+      // Verificar la contraseña en el servidor
+      const verifyResponse = await fetch("/api/verify-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
       
-      if (password !== correctPassword) {
-        setPasswordError("Contraseña incorrecta");
+      const verifyData = await verifyResponse.json();
+      
+      if (!verifyResponse.ok || !verifyData.success) {
+        setPasswordError(verifyData.message || "Contraseña incorrecta");
         return;
       }
       
@@ -188,7 +196,7 @@ export default function StatsPage() {
       setShowPasswordModal(false);
       
       // Enviar la configuración al servidor
-      const response = await fetch("/api/config", {
+      const response = await fetch("/api/config-redis", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
