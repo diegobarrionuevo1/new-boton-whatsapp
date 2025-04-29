@@ -21,7 +21,8 @@ export default function ReusablePage({
   rounded = true,
   width = 222
 }: ReusablePageProps) {
-    const handleClick = async () => {
+    // Función separada para manejar solo la analítica
+    const handleClickAnalytics = async () => {
         // Asegurar que siempre tengamos un userId
         let userId = localStorage.getItem("userId");
         if (!userId) {
@@ -42,12 +43,6 @@ export default function ReusablePage({
         console.log("Body enviado:", body);
 
         try {
-            // Crear un enlace temporal en el DOM
-            const link = document.createElement('a');
-            link.href = whatsappLink;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            
             const response = await fetch("/api/clicks-redis", {
                 method: "POST",
                 headers: {
@@ -62,21 +57,8 @@ export default function ReusablePage({
 
             const data = await response.json();
             console.log("Estadísticas actualizadas:", data);
-            
-            // Simular un clic en el enlace en lugar de usar window.open
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         } catch (error) {
             console.error("Error al enviar clic:", error);
-            // Si hay un error, aún así redirigimos al usuario usando el método alternativo
-            const link = document.createElement('a');
-            link.href = whatsappLink;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
     };
 
@@ -109,10 +91,12 @@ export default function ReusablePage({
                     href={whatsappLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={(e) => {
-                        // Prevenir la navegación predeterminada para poder registrar el clic
-                        e.preventDefault();
-                        handleClick();
+                    onClick={() => {
+                        // Registrar el clic sin prevenir la navegación predeterminada
+                        // Esto permite que el navegador maneje la navegación normalmente
+                        setTimeout(() => {
+                            handleClickAnalytics();
+                        }, 0);
                     }}
                 >
                     <IconWhatsapp className="size-6 fill-green-500" />

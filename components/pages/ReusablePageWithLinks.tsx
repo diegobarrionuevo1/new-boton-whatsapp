@@ -49,7 +49,7 @@ export default function ReusablePageWithLinks({
         setIsThemeResolved(true); // Ensure this runs after theme is resolved
     }, [resolvedTheme]); // Depend on resolvedTheme
     
-    const handleClick = async (url: string) => {
+    const handleClickAnalytics = async () => {
         // Asegurar que siempre tengamos un userId
         let userId = localStorage.getItem("userId");
         if (!userId) {
@@ -70,12 +70,6 @@ export default function ReusablePageWithLinks({
         console.log("Body enviado:", body);
 
         try {
-            // Crear un enlace temporal en el DOM
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            
             // Enviar los datos de analítica
             const response = await fetch("/api/clicks-redis", {
                 method: "POST",
@@ -91,21 +85,8 @@ export default function ReusablePageWithLinks({
 
             const data = await response.json();
             console.log("Estadísticas actualizadas:", data);
-            
-            // Simular un clic en el enlace en lugar de usar window.open
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         } catch (error) {
             console.error("Error al enviar clic:", error);
-            // Si hay un error, aún así redirigimos al usuario usando el método alternativo
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
     };
     
@@ -152,10 +133,12 @@ export default function ReusablePageWithLinks({
                                 href={link.href} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                onClick={(e) => {
-                                    // Prevenir la navegación predeterminada para poder registrar el clic
-                                    e.preventDefault();
-                                    handleClick(link.href);
+                                onClick={() => {
+                                    // Registrar el clic sin prevenir la navegación predeterminada
+                                    // Esto permite que el navegador maneje la navegación normalmente
+                                    setTimeout(() => {
+                                        handleClickAnalytics();
+                                    }, 0);
                                 }}
                             >
                                 <Image
