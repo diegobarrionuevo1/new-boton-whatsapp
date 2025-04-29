@@ -1,7 +1,8 @@
 'use client';
 
 import Image, { StaticImageData } from 'next/image';
-import { RainbowButton } from '@/components/magicui/rainbow-button';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { AuroraText } from '@/components/magicui/aurora-text';
 import { Particles } from '../magicui/particles';
 import { useEffect, useState } from 'react';
@@ -69,6 +70,13 @@ export default function ReusablePageWithLinks({
         console.log("Body enviado:", body);
 
         try {
+            // Crear un enlace temporal en el DOM
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            
+            // Enviar los datos de analítica
             const response = await fetch("/api/clicks-redis", {
                 method: "POST",
                 headers: {
@@ -84,12 +92,20 @@ export default function ReusablePageWithLinks({
             const data = await response.json();
             console.log("Estadísticas actualizadas:", data);
             
-            // Usar el enlace tal como está, sin formatear
-            window.open(url, '_blank');
+            // Simular un clic en el enlace en lugar de usar window.open
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         } catch (error) {
             console.error("Error al enviar clic:", error);
-            // Si hay un error, aún así redirigimos al usuario
-            window.open(url, '_blank');
+            // Si hay un error, aún así redirigimos al usuario usando el método alternativo
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     };
     
@@ -126,19 +142,32 @@ export default function ReusablePageWithLinks({
                 }
                 
                 return (
-                    <RainbowButton
-                        key={index}
-                        className={`${index > 0 ? "mt-5 " : " "} p-7 ${resolvedTheme === 'dark' ? 'bg-black' : ''}`}
-                        onClick={() => handleClick(link.href)}
-                    >
-                        <Image
-                            src={imageSrc}
-                            height={58}
-                            width={200}
-                            alt={link.logoAlt}
-                            className="m-0"
-                        />
-                    </RainbowButton>
+                    <div key={index} className={`${index > 0 ? "mt-5" : ""}`}>
+                        <Button 
+                            asChild 
+                            variant="outline"
+                            className={`h-auto px-8 flex items-center rounded-xl ${link.href === "https://Ganamos.biz" ? "bg-gradient-to-r from-[#411f8a] via-[#411f8a] to-[#8a2baf]" : "bg-[#054037]"}`}
+                        >
+                            <Link 
+                                href={link.href} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                    // Prevenir la navegación predeterminada para poder registrar el clic
+                                    e.preventDefault();
+                                    handleClick(link.href);
+                                }}
+                            >
+                                <Image
+                                    src={imageSrc}
+                                    height={58}
+                                    width={200}
+                                    alt={link.logoAlt}
+                                    className="m-0"
+                                />
+                            </Link>
+                        </Button>
+                    </div>
                 );
             })}
                 

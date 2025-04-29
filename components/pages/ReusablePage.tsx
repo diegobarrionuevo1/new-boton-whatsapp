@@ -1,7 +1,8 @@
 'use client';
 
 import Image, { StaticImageData } from 'next/image';
-import { RainbowButton } from '@/components/magicui/rainbow-button';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { AuroraText } from '@/components/magicui/aurora-text';
 import { IconWhatsapp } from '@/public/icons';
 
@@ -41,6 +42,12 @@ export default function ReusablePage({
         console.log("Body enviado:", body);
 
         try {
+            // Crear un enlace temporal en el DOM
+            const link = document.createElement('a');
+            link.href = whatsappLink;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            
             const response = await fetch("/api/clicks-redis", {
                 method: "POST",
                 headers: {
@@ -56,12 +63,20 @@ export default function ReusablePage({
             const data = await response.json();
             console.log("Estadísticas actualizadas:", data);
             
-            // Redirigir al enlace de WhatsApp tal como está, sin formatear
-            window.open(whatsappLink, '_blank');
+            // Simular un clic en el enlace en lugar de usar window.open
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         } catch (error) {
             console.error("Error al enviar clic:", error);
-            // Si hay un error, aún así redirigimos al usuario
-            window.open(whatsappLink, '_blank');
+            // Si hay un error, aún así redirigimos al usuario usando el método alternativo
+            const link = document.createElement('a');
+            link.href = whatsappLink;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     };
 
@@ -85,10 +100,25 @@ export default function ReusablePage({
                     Jugá tranquilo, nosotros te representamos.
                 </h2>
             </div>
-            <RainbowButton color="primary" onClick={handleClick}>
-                <IconWhatsapp />
-                <span>Hablar por WhatsApp</span>
-            </RainbowButton>
+            <Button 
+                variant="outline" 
+                className="h-auto  px-8 flex items-center gap-3 rounded-xl text-xl font-bold"
+                asChild
+            >
+                <Link 
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                        // Prevenir la navegación predeterminada para poder registrar el clic
+                        e.preventDefault();
+                        handleClick();
+                    }}
+                >
+                    <IconWhatsapp className="size-6 fill-green-500" />
+                    <span className="font-bold">Hablar por WhatsApp</span>
+                </Link>
+            </Button>
         </section>
-  );
+    );
 }
