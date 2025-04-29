@@ -46,7 +46,13 @@ export default function StatsPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Datos históricos para el gráfico
-  const [chartData, setChartData] = useState<Array<{date: string, hero: number, goldenBot: number}>>([]);
+  const [chartData, setChartData] = useState<Array<{
+    date: string, 
+    hero: number, 
+    goldenBot: number,
+    heroUsers?: number,
+    goldenBotUsers?: number
+  }>>([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -75,10 +81,16 @@ export default function StatsPage() {
         // Si tenemos datos de los últimos 7 días
         if (heroData.last7Days && goldenBotData.last7Days) {
           for (let i = 0; i < 7; i++) {
+            // Estimamos usuarios únicos por día (esto es un ejemplo, ajusta según tus datos reales)
+            const heroUsers = Math.round(heroData.last7Days[i].clicks * (heroData.uniqueUsers / heroData.clickCount));
+            const goldenBotUsers = Math.round(goldenBotData.last7Days[i].clicks * (goldenBotData.uniqueUsers / goldenBotData.clickCount));
+            
             combinedChartData.push({
               date: heroData.last7Days[i].date,
               hero: heroData.last7Days[i].clicks,
-              goldenBot: goldenBotData.last7Days[i].clicks
+              goldenBot: goldenBotData.last7Days[i].clicks,
+              heroUsers: heroUsers || 0,
+              goldenBotUsers: goldenBotUsers || 0
             });
           }
         } else {
@@ -88,10 +100,20 @@ export default function StatsPage() {
             const date = new Date();
             date.setDate(today.getDate() - i);
             const dateStr = date.toISOString().split('T')[0];
+            
+            const heroClicks = i === 0 ? heroData.clickCount : Math.floor(Math.random() * 10);
+            const goldenBotClicks = i === 0 ? goldenBotData.clickCount : Math.floor(Math.random() * 10);
+            
+            // Estimamos usuarios únicos
+            const heroUsers = Math.round(heroClicks * (heroData.uniqueUsers / Math.max(1, heroData.clickCount)));
+            const goldenBotUsers = Math.round(goldenBotClicks * (goldenBotData.uniqueUsers / Math.max(1, goldenBotData.clickCount)));
+            
             combinedChartData.push({
               date: dateStr,
-              hero: i === 0 ? heroData.clickCount : Math.floor(Math.random() * 10),
-              goldenBot: i === 0 ? goldenBotData.clickCount : Math.floor(Math.random() * 10)
+              hero: heroClicks,
+              goldenBot: goldenBotClicks,
+              heroUsers: heroUsers || 0,
+              goldenBotUsers: goldenBotUsers || 0
             });
           }
         }
