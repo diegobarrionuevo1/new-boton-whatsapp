@@ -33,7 +33,7 @@ export default function StatsChart() {
       let allClicks: ClickEvent[] = [];
       for (const negocio of negocios) {
         try {
-          const res = await fetch(`/api/clicks-redis?business=${encodeURIComponent(negocio)}&limit=5000`);
+          const res = await fetch(`/api/clicks-redis?business=${encodeURIComponent(negocio)}`);
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data.clicks)) {

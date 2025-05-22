@@ -89,11 +89,18 @@ export async function GET(request: NextRequest) {
     try {
         // Obtener clicks individuales
         const rawClicks = await redis.lrange(clicksListKey, 0, limit - 1);
-        console.log('Clicks obtenidos de Redis para', clicksListKey, ':', rawClicks.length);
-        const clicks = rawClicks.map((item: string) => {
-            try {
-                return JSON.parse(item);
-            } catch {
+        const clicks = rawClicks.map((item: any) => {
+            if (typeof item === 'string') {
+                try {
+                    return JSON.parse(item);
+                } catch (e) {
+                    console.error('Error parseando item en posición', i, ':', item, e);
+                    return null;
+                }
+            } else if (typeof item === 'object' && item !== null) {
+                // Si ya es un objeto JS, lo devolvemos tal cual
+                return item;
+            } else {
                 return null;
             }
         }).filter(Boolean);
@@ -196,6 +203,7 @@ export async function POST(request: NextRequest) {
             business: businessKey
         };
         const clicksListKey = `clicks-${businessKey}`;
+        console.log('[DEBUG] Guardando click en Redis:', typeof clickEvent, clickEvent, '->', JSON.stringify(clickEvent));
         await redis.lpush(clicksListKey, JSON.stringify(clickEvent));
 
         // Guardar datos agregados para eficiencia
