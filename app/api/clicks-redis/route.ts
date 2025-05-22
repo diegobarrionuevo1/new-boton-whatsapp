@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
     try {
         // Obtener clicks individuales
         const rawClicks = await redis.lrange(clicksListKey, 0, limit - 1);
+        console.log('Clicks obtenidos de Redis para', clicksListKey, ':', rawClicks.length);
         const clicks = rawClicks.map((item: string) => {
             try {
                 return JSON.parse(item);

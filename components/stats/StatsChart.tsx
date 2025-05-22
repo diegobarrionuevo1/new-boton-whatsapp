@@ -26,6 +26,31 @@ interface ClickEvent {
 }
 
 export default function StatsChart() {
+  // Fetch de clicks de todos los negocios al montar el componente
+  useEffect(() => {
+    async function fetchAllClicks() {
+      const negocios = ['Hero', 'GoldenBot', 'Fichas Ya'];
+      let allClicks: ClickEvent[] = [];
+      for (const negocio of negocios) {
+        try {
+          const res = await fetch(`/api/clicks-redis?business=${encodeURIComponent(negocio)}&limit=5000`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.clicks)) {
+              // Asegurarse de que cada click tenga el campo 'business'
+              const withBusiness = data.clicks.map((c: ClickEvent) => ({ ...c, business: negocio }));
+              allClicks = allClicks.concat(withBusiness);
+            }
+          }
+        } catch {}
+      }
+      setClicks(allClicks);
+      console.log('[StatsChart] Clicks recibidos:', allClicks);
+
+    }
+    fetchAllClicks();
+  }, []);
+
   const [activeChart, setActiveChart] = useState<'hero' | 'goldenBot'>('hero');
   const [timeFilter, setTimeFilter] = useState<'day' | 'week' | 'month'>('day');
   const [filteredChartData, setFilteredChartData] = useState<Array<{date: string, hero: number, goldenBot: number, heroUsers?: number, goldenBotUsers?: number}>>([]);
@@ -64,6 +89,9 @@ export default function StatsChart() {
 
   // Procesar los clicks individuales para generar las estadísticas
   const filterChartData = useCallback((period: 'day' | 'week' | 'month') => {
+    // Log para depuración
+    console.log('[StatsChart] Filtrando datos para periodo:', period, 'Clicks:', clicks);
+
     if (!clicks.length) return;
     let filtered: { date: string; hero: number; goldenBot: number; heroUsers?: number; goldenBotUsers?: number }[] = [];
     const now = new Date();
@@ -85,8 +113,12 @@ export default function StatsChart() {
           fecha.getDate() === now.getDate()
         ) {
           const hora = fecha.getHours();
-          horas[hora].hero += 1;
-          // Puedes diferenciar Hero/GoldenBot si lo guardas en el click
+          if (click.business === 'GoldenBot') {
+            horas[hora].goldenBot += 1;
+          } else if (click.business === 'Hero') {
+            horas[hora].hero += 1;
+          }
+          // Si quieres ignorar Fichas Ya, no hagas nada
         }
       });
       filtered = horas;

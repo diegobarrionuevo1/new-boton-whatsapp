@@ -11,6 +11,8 @@ export default function Home() {
     titleText="¡Que te diviertas!"
     subtitleText="Jugá tranquilo, nosotros te representamos."
     links={links}
+    rounded={true}
+    width={272}
     />
     );
 }
