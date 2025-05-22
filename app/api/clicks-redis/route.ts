@@ -89,21 +89,26 @@ export async function GET(request: NextRequest) {
     try {
         // Obtener clicks individuales
         const rawClicks = await redis.lrange(clicksListKey, 0, limit - 1);
-        const clicks = rawClicks.map((item: any) => {
-            if (typeof item === 'string') {
-                try {
-                    return JSON.parse(item);
-                } catch (e) {
-                    console.error('Error parseando item en posición', i, ':', item, e);
+        type ClickEvent = {
+            userId: string;
+            timestamp: number;
+            business: string;
+        };
+        const clicks = rawClicks
+            .map((item): ClickEvent | null => {
+                if (typeof item === 'string') {
+                    try {
+                        return JSON.parse(item) as ClickEvent;
+                    } catch {
+                        return null;
+                    }
+                } else if (typeof item === 'object' && item !== null) {
+                    return item as ClickEvent;
+                } else {
                     return null;
                 }
-            } else if (typeof item === 'object' && item !== null) {
-                // Si ya es un objeto JS, lo devolvemos tal cual
-                return item;
-            } else {
-                return null;
-            }
-        }).filter(Boolean);
+            })
+            .filter((item): item is ClickEvent => !!item);
 
         // Obtener currentNumber (igual que en GET_STATS)
         const numbers = await getNumbers();
