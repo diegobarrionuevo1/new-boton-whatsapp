@@ -49,46 +49,7 @@ export default function ReusablePageWithLinks({
         setIsThemeResolved(true); // Ensure this runs after theme is resolved
     }, [resolvedTheme]); // Depend on resolvedTheme
     
-    const handleClickAnalytics = async () => {
-        // Asegurar que siempre tengamos un userId
-        let userId = localStorage.getItem("userId");
-        if (!userId) {
-            userId = crypto.randomUUID();
-            localStorage.setItem("userId", userId);
-        }
 
-        // Agregar timestamp para evitar duplicados incluso con el mismo userId
-        const timestamp = new Date().getTime();
-        const uniqueId = `${userId}_${timestamp}`;
-
-        const body = JSON.stringify({
-            userId: uniqueId,
-            business: "Hero", // Asumimos que este componente se usa para Hero
-            timestamp: timestamp
-        });
-
-        console.log("Body enviado:", body);
-
-        try {
-            // Enviar los datos de analítica
-            const response = await fetch("/api/clicks-redis", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: body,
-            });
-      
-            if (!response.ok) {
-                throw new Error("Error en la solicitud al backend");
-            }
-
-            const data = await response.json();
-            console.log("Estadísticas actualizadas:", data);
-        } catch (error) {
-            console.error("Error al enviar clic:", error);
-        }
-    };
     
     return (
         <section className="relative flex flex-col items-center justify-center h-screen">
@@ -133,13 +94,7 @@ export default function ReusablePageWithLinks({
                                 href={link.href} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                onClick={() => {
-                                    // Registrar el clic sin prevenir la navegación predeterminada
-                                    // Esto permite que el navegador maneje la navegación normalmente
-                                    setTimeout(() => {
-                                        handleClickAnalytics();
-                                    }, 0);
-                                }}
+
                             >
                                 <Image
                                     src={imageSrc}

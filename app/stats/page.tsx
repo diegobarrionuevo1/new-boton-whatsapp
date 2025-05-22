@@ -45,15 +45,6 @@ export default function StatsPage() {
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  // Datos históricos para el gráfico
-  const [chartData, setChartData] = useState<Array<{
-    date: string, 
-    hero: number, 
-    goldenBot: number,
-    heroUsers?: number,
-    goldenBotUsers?: number
-  }>>([]);
-
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -118,7 +109,7 @@ export default function StatsPage() {
           }
         }
         
-        setChartData(combinedChartData);
+
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -285,9 +276,7 @@ export default function StatsPage() {
 
       {/* Gráfico de estadísticas */}
       {heroStats && goldenBotStats && (
-        <StatsChart 
-          chartData={chartData}
-        />
+        <StatsChart />
       )}
 
       {/* Estadísticas */}

@@ -17,14 +17,19 @@ import {
 } from "@/components/ui/chart";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-interface StatsChartProps {
-  chartData: Array<{date: string, hero: number, goldenBot: number, heroUsers?: number, goldenBotUsers?: number}>;
+
+
+interface ClickEvent {
+  userId: string;
+  timestamp: number;
+  business?: "Hero" | "GoldenBot";
 }
 
-export default function StatsChart({ chartData }: StatsChartProps) {
+export default function StatsChart() {
   const [activeChart, setActiveChart] = useState<'hero' | 'goldenBot'>('hero');
   const [timeFilter, setTimeFilter] = useState<'day' | 'week' | 'month'>('day');
   const [filteredChartData, setFilteredChartData] = useState<Array<{date: string, hero: number, goldenBot: number, heroUsers?: number, goldenBotUsers?: number}>>([]);
+  const [clicks, setClicks] = useState<ClickEvent[]>([]);
   const [activeTab, setActiveTab] = useState<'clicks' | 'users'>('clicks');
 
   // Configuración del gráfico para clics
@@ -57,102 +62,110 @@ export default function StatsChart({ chartData }: StatsChartProps) {
     },
   };
 
-  // Función para filtrar datos según el período seleccionado
+  // Procesar los clicks individuales para generar las estadísticas
   const filterChartData = useCallback((period: 'day' | 'week' | 'month') => {
-    if (!chartData.length) return;
-    
-    let filtered = [];
+    if (!clicks.length) return;
+    let filtered: { date: string; hero: number; goldenBot: number; heroUsers?: number; goldenBotUsers?: number }[] = [];
     const now = new Date();
-    
-    switch (period) {
-      case 'day':
-        // Mostrar los últimos 7 días (como ya está)
-        filtered = [...chartData];
-        break;
-      
-      case 'week':
-        // Agrupar por semana (últimas 4 semanas)
-        const weeklyData = [];
-        for (let i = 3; i >= 0; i--) {
-          // Calcular fecha de inicio de la semana (i semanas atrás)
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - (7 * i + 6));
-          const weekLabel = `Sem ${i+1}`;
-          
-          // Sumar todos los clicks de la semana
-          let heroSum = 0;
-          let goldenBotSum = 0;
-          let heroUsersSum = 0;
-          let goldenBotUsersSum = 0;
-          
-          chartData.forEach(day => {
-            const dayDate = new Date(day.date);
-            const diffTime = Math.abs(dayDate.getTime() - weekStart.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays <= 7) {
-              heroSum += day.hero;
-              goldenBotSum += day.goldenBot;
-              heroUsersSum += day.heroUsers || 0;
-              goldenBotUsersSum += day.goldenBotUsers || 0;
-            }
-          });
-          
-          weeklyData.push({
-            date: weekLabel,
-            hero: heroSum,
-            goldenBot: goldenBotSum,
-            heroUsers: heroUsersSum,
-            goldenBotUsers: goldenBotUsersSum
-          });
+
+    if (period === 'day') {
+      // Día actual: 24 horas
+      const horas = Array.from({ length: 24 }, (_, i) => ({
+        date: `${i}:00`,
+        hero: 0,
+        goldenBot: 0,
+        heroUsers: 0,
+        goldenBotUsers: 0
+      }));
+      clicks.forEach((click: ClickEvent) => {
+        const fecha = new Date(click.timestamp);
+        if (
+          fecha.getFullYear() === now.getFullYear() &&
+          fecha.getMonth() === now.getMonth() &&
+          fecha.getDate() === now.getDate()
+        ) {
+          const hora = fecha.getHours();
+          horas[hora].hero += 1;
+          // Puedes diferenciar Hero/GoldenBot si lo guardas en el click
         }
-        filtered = weeklyData;
-        break;
-      
-      case 'month':
-        // Agrupar por mes (últimos 3 meses)
-        const monthlyData = [];
-        for (let i = 2; i >= 0; i--) {
-          // Calcular fecha de inicio del mes (i meses atrás)
-          const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          const monthLabel = monthStart.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
-          
-          // Sumar todos los clicks del mes
-          let heroSum = 0;
-          let goldenBotSum = 0;
-          let heroUsersSum = 0;
-          let goldenBotUsersSum = 0;
-          
-          chartData.forEach(day => {
-            const dayDate = new Date(day.date);
-            if (dayDate.getMonth() === monthStart.getMonth() && 
-                dayDate.getFullYear() === monthStart.getFullYear()) {
-              heroSum += day.hero;
-              goldenBotSum += day.goldenBot;
-              heroUsersSum += day.heroUsers || 0;
-              goldenBotUsersSum += day.goldenBotUsers || 0;
-            }
-          });
-          
-          monthlyData.push({
-            date: monthLabel,
-            hero: heroSum,
-            goldenBot: goldenBotSum,
-            heroUsers: heroUsersSum,
-            goldenBotUsers: goldenBotUsersSum
-          });
-        }
-        filtered = monthlyData;
-        break;
+      });
+      filtered = horas;
+    } else if (period === 'week') {
+      // Últimos 7 días
+      const diasArray: string[] = [];
+      const dataPorDia: Record<string, { hero: number; goldenBot: number; heroUsers: number; goldenBotUsers: number }> = {};
+      for (let i = 6; i >= 0; i--) {
+        const fecha = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 0, 0, 0, 0);
+        // Usar fecha local YYYY-MM-DD
+        const key = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2, '0') + '-' + String(fecha.getDate()).padStart(2, '0');
+        diasArray.push(key);
+        dataPorDia[key] = { hero: 0, goldenBot: 0, heroUsers: 0, goldenBotUsers: 0 };
+      }
+      // Agrupar clicks por fecha y bot
+const usersPorDia: Record<string, { hero: Set<string>; goldenBot: Set<string> }> = {};
+clicks.forEach(click => {
+        const fecha = new Date(click.timestamp);
+const key = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2, '0') + '-' + String(fecha.getDate()).padStart(2, '0');
+// Determinar el bot (asume 'Hero' si no hay campo business)
+const bot = (click.business === 'GoldenBot') ? 'goldenBot' : 'hero';
+if (key in dataPorDia) {
+  dataPorDia[key][bot] += 1;
+  if (!usersPorDia[key]) usersPorDia[key] = { hero: new Set(), goldenBot: new Set() };
+  usersPorDia[key][bot].add(click.userId.split('_')[0]);
+}        }
+      );
+// Calcular usuarios únicos por día y bot
+
+      filtered = diasArray.map(key => ({
+        date: key,
+        ...dataPorDia[key]
+      }));
+    } else if (period === 'month') {
+      // Últimos 30 días
+      const diasArray: string[] = [];
+      const dataPorDia: Record<string, { hero: number; goldenBot: number; heroUsers: number; goldenBotUsers: number }> = {};
+      for (let i = 29; i >= 0; i--) {
+        const fecha = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 0, 0, 0, 0);
+        const key = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2, '0') + '-' + String(fecha.getDate()).padStart(2, '0');
+        diasArray.push(key);
+        dataPorDia[key] = { hero: 0, goldenBot: 0, heroUsers: 0, goldenBotUsers: 0 };
+      }
+      // Agrupar clicks por fecha y bot
+const usersPorDia: Record<string, { hero: Set<string>; goldenBot: Set<string> }> = {};
+clicks.forEach(click => {
+        const fecha = new Date(click.timestamp);
+const key = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2, '0') + '-' + String(fecha.getDate()).padStart(2, '0');
+// Determinar el bot (asume 'Hero' si no hay campo business)
+const bot = (click.business === 'GoldenBot') ? 'goldenBot' : 'hero';
+if (key in dataPorDia) {
+  dataPorDia[key][bot] += 1;
+  if (!usersPorDia[key]) usersPorDia[key] = { hero: new Set(), goldenBot: new Set() };
+  usersPorDia[key][bot].add(click.userId.split('_')[0]);
+}        }
+      );
+
+      filtered = diasArray.map(key => ({
+        date: key,
+        ...dataPorDia[key]
+      }));
     }
-    
     setFilteredChartData(filtered);
-  }, [chartData]);
+  }, [clicks]);
 
   // Efecto para filtrar datos cuando cambia el período
+  // Obtener los clicks individuales del backend
+  useEffect(() => {
+    fetch('/api/clicks-redis?business=Hero&limit=1000')
+      .then(res => res.json())
+      .then(data => {
+        setClicks(data.clicks || []);
+      });
+
+  }, []);
+
   useEffect(() => {
     filterChartData(timeFilter);
-  }, [timeFilter, filterChartData]);
+  }, [timeFilter, filterChartData, clicks]);
 
   return (
     <Card className="mb-8">
@@ -179,11 +192,9 @@ export default function StatsChart({ chartData }: StatsChartProps) {
                 <span className="text-lg font-bold leading-none sm:text-3xl">
                   {key === 'hero' 
                     ? activeTab === 'clicks'
-                      ? chartData.reduce((acc, curr) => acc + curr.hero, 0).toLocaleString()
-                      : chartData.reduce((acc, curr) => acc + (curr.heroUsers || 0), 0).toLocaleString()
-                    : activeTab === 'clicks'
-                      ? chartData.reduce((acc, curr) => acc + curr.goldenBot, 0).toLocaleString()
-                      : chartData.reduce((acc, curr) => acc + (curr.goldenBotUsers || 0), 0).toLocaleString()
+                      ? clicks.length.toLocaleString()
+                      : Array.from(new Set(clicks.map(c => c.userId))).length.toLocaleString()
+                    : 0
                   }
                 </span>
               </button>
@@ -289,6 +300,7 @@ export default function StatsChart({ chartData }: StatsChartProps) {
                         day: "numeric",
                         month: "short"
                       });
+
                     }}
                   />
                   <ChartTooltip
@@ -304,6 +316,8 @@ export default function StatsChart({ chartData }: StatsChartProps) {
                             month: "short",
                             year: "numeric"
                           });
+// Calcular usuarios únicos por día y bot
+
                         }}
                       />
                     }
@@ -377,6 +391,7 @@ export default function StatsChart({ chartData }: StatsChartProps) {
                         day: "numeric",
                         month: "short"
                       });
+
                     }}
                   />
                   <ChartTooltip
@@ -392,6 +407,7 @@ export default function StatsChart({ chartData }: StatsChartProps) {
                             month: "short",
                             year: "numeric"
                           });
+
                         }}
                       />
                     }

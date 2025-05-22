@@ -82,27 +82,31 @@ export default function ReusablePage({
                     Jugá tranquilo, nosotros te representamos.
                 </h2>
             </div>
-            <Button 
-                variant="outline" 
-                className="h-auto  px-8 flex items-center gap-3 rounded-xl text-xl font-bold"
-                asChild
-            >
-                <Link 
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                        // Registrar el clic sin prevenir la navegación predeterminada
-                        // Esto permite que el navegador maneje la navegación normalmente
-                        setTimeout(() => {
-                            handleClickAnalytics();
-                        }, 0);
-                    }}
-                >
-                    <IconWhatsapp className="size-6 fill-green-500" />
-                    <span className="font-bold">Hablar por WhatsApp</span>
-                </Link>
-            </Button>
+            {typeof whatsappLink === 'string' && whatsappLink.length > 0 ? (
+          <Button 
+              variant="outline" 
+              className="h-auto  px-8 flex items-center gap-3 rounded-xl text-xl font-bold"
+              asChild
+          >
+              <Link 
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                      // Registrar el clic sin prevenir la navegación predeterminada
+                      // Esto permite que el navegador maneje la navegación normalmente
+                      setTimeout(() => {
+                          handleClickAnalytics();
+                      }, 0);
+                  }}
+              >
+                  <IconWhatsapp className="size-6 fill-green-500" />
+                  <span className="font-bold">Hablar por WhatsApp</span>
+              </Link>
+          </Button>
+        ) : (
+          <span className="text-red-500 font-semibold block py-4">Enlace de WhatsApp no disponible</span>
+        )}
         </section>
     );
 }

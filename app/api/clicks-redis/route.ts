@@ -69,7 +69,49 @@ const getNumbers = async (): Promise<Record<BusinessType, string[]>> => {
     };
 };
 
+// Nuevo endpoint para obtener clicks individuales
 export async function GET(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const business = searchParams.get('business');
+    const limit = parseInt(searchParams.get('limit') || '1000', 10);
+    if (!business || !(business === "Hero" || business === "GoldenBot")) {
+        return NextResponse.json({ error: "Negocio no válido" }, { status: 400 });
+    }
+    const clicksListKey = `clicks-${business}`;
+    try {
+        // Obtener clicks individuales
+        const rawClicks = await redis.lrange(clicksListKey, 0, limit - 1);
+        const clicks = rawClicks.map((item: string) => {
+            try {
+                return JSON.parse(item);
+            } catch {
+                return null;
+            }
+        }).filter(Boolean);
+
+        // Obtener currentNumber (igual que en GET_STATS)
+        const numbers = await getNumbers();
+        const statsKey = `stats-${business}`;
+        const businessData = await redis.get<BusinessData>(statsKey) || { 
+            clickCount: 0, 
+            uniqueUsers: [], 
+            dailyClicks: {} 
+        };
+        const numberIndex = numbers[business as BusinessType].length > 0 
+            ? Math.floor(businessData.clickCount / 10) % numbers[business as BusinessType].length 
+            : 0;
+        const currentNumber = numbers[business as BusinessType].length > 0 
+            ? numbers[business as BusinessType][numberIndex]
+            : "";
+
+        return NextResponse.json({ clicks, currentNumber });
+    } catch (error) {
+        return NextResponse.json({ error: 'Error al obtener clicks', details: error }, { status: 500 });
+    }
+}
+
+// Endpoint original de estadísticas agregadas
+export async function GET_STATS(request: NextRequest) {
     try {
         // Obtener el parámetro business de la URL
         const { searchParams } = new URL(request.url);
@@ -200,7 +242,16 @@ export async function POST(request: NextRequest) {
         
         businessData.currentNumber = currentNumber;
         
-        // Guardar datos actualizados en Redis
+        // Guardar el click individual en una lista para analítica avanzada
+        // Estructura: { userId, timestamp }
+        const clickEvent = {
+            userId: baseUserId,
+            timestamp: Date.now(),
+        };
+        const clicksListKey = `clicks-${businessKey}`;
+        await redis.lpush(clicksListKey, JSON.stringify(clickEvent));
+
+        // Guardar datos agregados para eficiencia
         await redis.set(statsKey, businessData);
         
         return NextResponse.json({

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import ReusablePage from "@/components/pages/ReusablePage";
 import { Particles } from "@/components/magicui/particles";
-import hero from '@/public/hero.png';
+import logoFy from '@/public/LogoFichas.png';
 
 export default function Hero() {
   const { resolvedTheme } = useTheme();
@@ -61,11 +61,11 @@ export default function Hero() {
     <div className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background">
       <div className="z-10">
         <ReusablePage
-          logoSrc={hero}
-          businessName="Hero"
+          logoSrc={logoFy}
+          businessName="Fichas Ya"
           whatsappLink={currentNumber}
-          rounded={false}
-          width={262}
+          rounded={true}
+          width={252}
         />
       </div>
       <Particles
