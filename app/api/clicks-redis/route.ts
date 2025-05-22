@@ -9,7 +9,7 @@ const redis = new Redis({
 });
 
 // Tipos permitidos para las claves de numbers
-type BusinessType = "Hero" | "GoldenBot";
+type BusinessType = "Hero" | "GoldenBot" | "Fichas Ya";
 
 // Interfaz para los datos de negocio
 interface BusinessData {
@@ -50,6 +50,10 @@ const getNumbers = async (): Promise<Record<BusinessType, string[]>> => {
                     config.whatsappNumbers.principalGolden?.numero1 || siteConfig.whatsappNumbers.principalGolden.numero1,
                     config.whatsappNumbers.principalGolden?.numero2 || siteConfig.whatsappNumbers.principalGolden.numero2,
                 ],
+                "Fichas Ya": [
+                    config.whatsappNumbers.descartableHero?.numero1 || siteConfig.whatsappNumbers.descartableHero.numero1,
+                    config.whatsappNumbers.descartableHero?.numero2 || siteConfig.whatsappNumbers.descartableHero.numero2,
+                ],
             };
         }
     } catch (error) {
@@ -66,6 +70,10 @@ const getNumbers = async (): Promise<Record<BusinessType, string[]>> => {
             siteConfig.whatsappNumbers.principalGolden.numero1,
             siteConfig.whatsappNumbers.principalGolden.numero2
         ],
+        "Fichas Ya": [
+            siteConfig.whatsappNumbers.descartableHero.numero1,
+            siteConfig.whatsappNumbers.descartableHero.numero2,
+        ],
     };
 };
 
@@ -74,7 +82,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const business = searchParams.get('business');
     const limit = parseInt(searchParams.get('limit') || '1000', 10);
-    if (!business || !(business === "Hero" || business === "GoldenBot")) {
+    if (!business || !(business === "Hero" || business === "GoldenBot" || business === "Fichas Ya")) {
         return NextResponse.json({ error: "Negocio no válido" }, { status: 400 });
     }
     const clicksListKey = `clicks-${business}`;
@@ -122,7 +130,7 @@ export async function POST(request: NextRequest) {
             !business ||
             typeof userId !== "string" ||
             typeof business !== "string" ||
-            !(business === "Hero" || business === "GoldenBot")
+            !(business === "Hero" || business === "GoldenBot" || business === "Fichas Ya")
         ) {
             return NextResponse.json({ error: "Datos inválidos o negocio no válido" }, { status: 400 });
         }
@@ -180,10 +188,11 @@ export async function POST(request: NextRequest) {
         businessData.currentNumber = currentNumber;
         
         // Guardar el click individual en una lista para analítica avanzada
-        // Estructura: { userId, timestamp }
+        // Estructura: { userId, timestamp, business }
         const clickEvent = {
             userId: baseUserId,
             timestamp: Date.now(),
+            business: businessKey
         };
         const clicksListKey = `clicks-${businessKey}`;
         await redis.lpush(clicksListKey, JSON.stringify(clickEvent));
