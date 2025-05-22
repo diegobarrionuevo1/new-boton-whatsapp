@@ -110,69 +110,6 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// Endpoint original de estadísticas agregadas
-export async function GET_STATS(request: NextRequest) {
-    try {
-        // Obtener el parámetro business de la URL
-        const { searchParams } = new URL(request.url);
-        const business = searchParams.get('business');
-        
-        // Validar el negocio
-        if (!business || !(business === "Hero" || business === "GoldenBot")) {
-            return NextResponse.json({ error: "Negocio no válido" }, { status: 400 });
-        }
-        
-        const businessKey = business as BusinessType;
-        
-        // Obtener números actuales
-        const numbers = await getNumbers();
-        
-        // Obtener datos del negocio desde Redis
-        const statsKey = `stats-${businessKey}`;
-        const businessData = await redis.get<BusinessData>(statsKey) || { 
-            clickCount: 0, 
-            uniqueUsers: [], 
-            dailyClicks: {} 
-        };
-        
-        // Asegurar que el índice no exceda el número de elementos en el array
-        const numberIndex = numbers[businessKey].length > 0 
-            ? Math.floor(businessData.clickCount / 10) % numbers[businessKey].length 
-            : 0;
-        
-        // Usar el enlace tal como está, sin formatear
-        const currentNumber = numbers[businessKey].length > 0 
-            ? numbers[businessKey][numberIndex]
-            : "";
-        
-        // Preparar datos históricos para los últimos 7 días
-        const dailyClicksData = businessData.dailyClicks || {};
-        const last7Days = [];
-        
-        // Generar array de los últimos 7 días
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            last7Days.push({
-                date: dateStr,
-                clicks: dailyClicksData[dateStr] || 0
-            });
-        }
-        
-        return NextResponse.json({
-            clickCount: businessData.clickCount || 0,
-            uniqueUsers: businessData.uniqueUsers?.length || 0,
-            currentNumber,
-            dailyClicks: businessData.dailyClicks || {},
-            last7Days
-        });
-    } catch (error) {
-        console.error("Error en GET:", error);
-        return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 });
-    }
-}
-
 export async function POST(request: NextRequest) {
     try {
         // Obtener los datos del cuerpo de la solicitud
