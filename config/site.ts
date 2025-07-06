@@ -1,5 +1,7 @@
-import logoGanamos from "../public/logo.png";
-import logoApostamos from "../public/logo-apostamos.png";
+import logoGanamos from "@/public/logo.png";
+import logoApostamos from "@/public/logo-apostamos.png";
+import logoArgenbet from "@/public/logo-argenbet.png"
+
 
 export type SiteConfig = typeof siteConfig;
 
@@ -19,12 +21,17 @@ export const siteConfig = {
   },
   platforms: [
     {
-      href: 'https://Ganamos.biz',
+      href: 'https://argenbet.net',
+      logoSrc: logoArgenbet,
+      logoAlt: 'Logo Argenbet'
+    },
+    {
+      href: 'https://Ganamos.io',
       logoSrc: logoGanamos,
       logoAlt: 'Logo Ganamos'
     },
     {
-      href: 'https://Apostamos.co',
+      href: 'https://Apostamos.vip',
       logoSrc: logoApostamos,
       logoAlt: 'Logo Apostamos'
     }
