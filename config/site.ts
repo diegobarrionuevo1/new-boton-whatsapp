@@ -11,8 +11,8 @@ export const siteConfig = {
   descriptionPlataform: 'Jugá tranquilo, nosotros te representamos.',
   whatsappNumbers: {
     principalGolden: {
-      numero1: 'https://api.whatsapp.com/send/?phone=5493517871678&text=Hola!+Quiero+un+usuario+porfavor!',
-      numero2: 'https://api.whatsapp.com/send/?phone=5491173651087&text=Hola!+Quiero+un+usuario+porfavor!'
+      numero1: 'https://api.whatsapp.com/send/?phone=5491173651087&text=Hola!+Quiero+un+usuario+porfavor!',
+      numero2: 'https://api.whatsapp.com/send/?phone=5492915279266&text=Hola!+Quiero+un+usuario+porfavor!'
     },
     descartableHero: {
       numero1: 'https://api.whatsapp.com/send/?phone=5493512926515&text=Hola%21+Quiero+un+usuario+porfavor%21+&type=phone_number&app_absent=0',
